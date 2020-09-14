@@ -13,4 +13,5 @@ dist/
 bin/camilla
 
 .vscode/
-.personal-notes.txt
+
+personal-notes.txt
