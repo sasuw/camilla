@@ -1,0 +1,2 @@
+Directory.current =
+      Directory('/home/sasu/Projects/secure-text-transfer-frontend/dist');
