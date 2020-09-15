@@ -36,6 +36,29 @@ option (or -l for short). This creates alternate language references in the site
 ### Example of sitemap.xml produced by camilla
 
     <?xml version="1.0"?>
+        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+            <url>
+                <loc>https://example.com/de/index.html</loc>
+                <lastmod>2020-09-13</lastmod>
+            </url>
+            <url>
+                <loc>https://example.com/index.html</loc>
+                <lastmod>2020-09-13</lastmod>
+            </url>
+            <url>
+                <loc>https://example.com/en/index.html</loc>
+                <lastmod>2020-09-13</lastmod>
+            </url>
+            <url>
+                <loc>https://example.com/fi/index.html</loc>
+                <lastmod>2020-09-13</lastmod>
+            </url>
+        </urlset>
+
+
+### Example of sitemap.xml produced by camilla when running with --baseDirContainsLanguageDirs option
+
+    <?xml version="1.0"?>
     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
       <url>
         <loc>https://example.com/de/index.html</loc>
