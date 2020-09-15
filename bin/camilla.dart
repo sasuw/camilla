@@ -1,24 +1,25 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:path/path.dart';
 import 'package:camilla/fileHandler.dart';
 import 'package:xml/xml.dart';
 import 'package:intl/intl.dart';
-import 'package:yaml/yaml.dart';
 
 final builder = XmlBuilder();
-final allPages = {};
 var baseUrl = 'https://example.com';
 
 var rootDirContainsLangDirs = false;
 var rootDirs = <String>[];
+var numberOfHtmlFiles = 0;
+
 void main(List<String> args) {
+  var stopwatch = Stopwatch()..start();
+
   if (args.isEmpty) {
     stdout.writeln(
         'Usage: camilla --baseDirContainsLanguageDirs --version --baseUrl [baseUrl]');
     stdout.writeln(
-        'Creates sitemap.xml of html files assuming that it is run in the base directory.');
+        'Creates sitemap.xml of html files when run in the base directory.');
     exit(0);
   }
 
@@ -53,14 +54,23 @@ void main(List<String> args) {
 
   final xmlDoc = builder.buildDocument();
   var xmlDocContents = xmlDoc.toXmlString(pretty: true);
-  print(xmlDocContents);
 
   var siteMapFile = File('sitemap.xml');
   siteMapFile.writeAsStringSync(xmlDocContents);
+
+  var stopwatchElapsed = stopwatch.elapsedMilliseconds;
+  print('qutem finished in ${(stopwatchElapsed / 1000).toString()} s.');
+  var resultStr = 'sitemap.xml with ' + numberOfHtmlFiles.toString() + ' pages';
+  if (rootDirContainsLangDirs) {
+    resultStr = resultStr + ' in ' + rootDirs.length.toString() + ' languages';
+  }
+  resultStr = resultStr + ' created';
+  print(resultStr);
 }
 
 void addUrl() {
   var allHtmlFiles = collectAllPages();
+  numberOfHtmlFiles = allHtmlFiles.length;
   for (var htmlFile in allHtmlFiles) {
     builder.element('url', nest: () {
       addLoc(htmlFile.fileName);
