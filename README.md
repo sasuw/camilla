@@ -102,6 +102,11 @@ The main executable, camilla.dart is located in the bin directory. The internal 
 
 The tests are in the test directory and the test data is in the test/data directory.
 
+## Create executable
+
+  dart pub get
+  dart compile exe bin/camilla.dart -o bin/camilla
+
 ## Running the code
 
 When you are in the project root directory, you can execute
@@ -109,7 +114,6 @@ When you are in the project root directory, you can execute
     dart bin/camilla.dart
 
 to run the program. For debugging, you can use e.g. [Visual Studio Code](https://code.visualstudio.com/).
-
 
 # Miscellaneous
 
