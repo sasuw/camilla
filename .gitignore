@@ -10,12 +10,10 @@ doc/api/
 
 dist/
 
-bin/camilla.dart
-bin/camilla
-
 .vscode/
 
 personal-notes.txt
 
+bin/camilla
 bin/*.tar.gz
 bin/*.exe
