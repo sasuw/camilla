@@ -104,8 +104,8 @@ The tests are in the test directory and the test data is in the test/data direct
 
 ## Create executable
 
-  dart pub get
-  dart compile exe bin/camilla.dart -o bin/camilla
+    dart pub get
+    dart compile exe bin/camilla.dart -o bin/camilla
 
 ## Running the code
 
