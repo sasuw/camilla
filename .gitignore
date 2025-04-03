@@ -17,3 +17,4 @@ personal-notes.txt
 bin/camilla
 bin/*.tar.gz
 bin/*.exe
+bin/scripts/camilla_test

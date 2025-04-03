@@ -55,7 +55,6 @@ option (or -l for short). This creates alternate language references in the site
             </url>
         </urlset>
 
-
 ### Example of sitemap.xml produced by camilla when running with --baseDirContainsLanguageDirs option
 
     <?xml version="1.0"?>
@@ -87,6 +86,9 @@ option (or -l for short). This creates alternate language references in the site
       </url>
     </urlset>
 
+### Trying it out
+
+To try `camilla` out you can create a test site structure by executing the Bash script `bin/scripts/create_test_site.sh` and executing `camilla` in that directory.
 
 # Getting started as developer
 
