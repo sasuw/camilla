@@ -36,4 +36,14 @@ void main() {
       'nested/about.html',
     );
   });
+
+  test('reports error when --baseUrl is missing without throwing unhandled exception', () async {
+    final result = await Process.run(
+      Platform.executable,
+      ['bin/camilla.dart', '-l'],
+    );
+    expect(result.exitCode, 1);
+    expect(result.stdout, contains('Option --baseUrl is mandatory'));
+    expect(result.stderr, isEmpty);
+  });
 }

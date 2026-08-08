@@ -11,10 +11,7 @@ class HtmlFile {
   /// Args:
   ///   fileName: The name/path of the HTML file
   ///   lastModified: The last modification timestamp of the file
-  HtmlFile(String fileName, DateTime lastModified) {
-    this.fileName = fileName;
-    this.lastModified = lastModified;
-  }
+  HtmlFile(this.fileName, this.lastModified);
 }
 
 /// Handles file system operations for the sitemap generator.
@@ -26,7 +23,7 @@ class FileHandler {
   ///   source: The directory to scan for root-level directories
   ///
   /// Returns:
-  ///   List<String>: Names of all root-level directories
+  ///   `List<String>`: Names of all root-level directories
   static List<String> getRootDirs(Directory source) {
     var output = <String>[];
     source.listSync(recursive: false).forEach((var entity) {
@@ -44,7 +41,7 @@ class FileHandler {
   ///   source: The directory to scan for HTML files
   ///
   /// Returns:
-  ///   List<HtmlFile>: List of HtmlFile objects representing all found HTML files
+  ///   `List<HtmlFile>`: List of HtmlFile objects representing all found HTML files
   static List<HtmlFile> getAllHtmlFiles(Directory source) {
     var output = <HtmlFile>[];
     source.listSync(recursive: true).forEach((var entity) {
