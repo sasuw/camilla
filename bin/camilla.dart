@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:camilla/fileHandler.dart';
+import 'package:camilla/file_handler.dart';
 import 'package:xml/xml.dart';
 import 'package:intl/intl.dart';
 
