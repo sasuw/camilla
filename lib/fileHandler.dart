@@ -7,7 +7,7 @@ class HtmlFile {
   DateTime lastModified = DateTime.now();
 
   /// Creates a new HtmlFile instance.
-  /// 
+  ///
   /// Args:
   ///   fileName: The name/path of the HTML file
   ///   lastModified: The last modification timestamp of the file
@@ -21,10 +21,10 @@ class HtmlFile {
 class FileHandler {
   /// Gets all root-level directories in the specified source directory.
   /// Used primarily for multi-language support where each language has its own directory.
-  /// 
+  ///
   /// Args:
   ///   source: The directory to scan for root-level directories
-  /// 
+  ///
   /// Returns:
   ///   List<String>: Names of all root-level directories
   static List<String> getRootDirs(Directory source) {
@@ -39,16 +39,17 @@ class FileHandler {
   }
 
   /// Recursively collects all HTML files from the specified directory and its subdirectories.
-  /// 
+  ///
   /// Args:
   ///   source: The directory to scan for HTML files
-  /// 
+  ///
   /// Returns:
   ///   List<HtmlFile>: List of HtmlFile objects representing all found HTML files
   static List<HtmlFile> getAllHtmlFiles(Directory source) {
     var output = <HtmlFile>[];
     source.listSync(recursive: true).forEach((var entity) {
-      if (entity is File && entity.path.endsWith('.html')) {
+      if (entity is File &&
+          (entity.path.endsWith('.html') || entity.path.endsWith('.htm'))) {
         var htmlFile = HtmlFile(
             getRelativeFilePath(entity.path), entity.lastModifiedSync());
         output.add(htmlFile);
@@ -59,10 +60,10 @@ class FileHandler {
   }
 
   /// Converts an absolute file path to a path relative to the current working directory.
-  /// 
+  ///
   /// Args:
   ///   filePath: The absolute file path to convert
-  /// 
+  ///
   /// Returns:
   ///   String: The relative path from the current working directory to the file
   static String getRelativeFilePath(filePath) {

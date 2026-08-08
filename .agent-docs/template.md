@@ -3,7 +3,7 @@
 ## Project overview
 
 camilla is a Dart command-line program that recursively scans a static website
-for lowercase `.html` files and writes a `sitemap.xml`. It supports a
+for lowercase `.html` and `.htm` files and writes a `sitemap.xml`. It supports a
 top-level-directory multilingual layout and can be compiled as a standalone
 executable.
 
@@ -44,8 +44,8 @@ findings separately.
 - Preserve established names such as `fileHandler.dart` and existing CLI option
   spellings: `--baseUrl`/`-b`, `--baseDirContainsLanguageDirs`/`-l`, and
   `--version`/`-v`.
-- Keep filesystem behaviour explicit: only lowercase `.html` files are
-  included, and multilingual mode treats every top-level directory as a
+- Keep filesystem behaviour explicit: only lowercase `.html` and `.htm` files
+  are included, and multilingual mode treats every top-level directory as a
   language directory.
 
 ## Agent guidance

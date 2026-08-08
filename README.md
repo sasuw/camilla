@@ -14,7 +14,7 @@ macOS.
 ## Create a sitemap
 
 Run camilla from the root directory of the static site. The command scans that
-directory recursively for files whose names end in lowercase `.html` and
+directory recursively for files whose names end in lowercase `.html` or `.htm` and
 overwrites `sitemap.xml` in the current directory.
 
 `--baseUrl` (or `-b`) is required because sitemap locations must be absolute:
