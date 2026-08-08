@@ -24,7 +24,8 @@ camilla --baseUrl https://example.com
 ```
 
 Do not include a trailing slash in the base URL. camilla adds one before each
-page path.
+page path. Sitemap URLs always use `/` as their path separator, including when
+camilla runs on Windows.
 
 The output contains one `url` entry per HTML file, with its relative path and
 the file's last-modified date:
