@@ -1,0 +1,57 @@
+{
+  "mcpServers": {
+    "dart-mcp": {
+      "type": "stdio",
+      "command": "dart",
+      "args": [
+        "mcp-server",
+        "--force-roots-fallback"
+      ],
+      "env": {},
+      "tools": [
+        "*"
+      ]
+    },
+    "filesystem": {
+      "type": "stdio",
+      "command": "${HOME}/Projects/gitea.sasu.org/infra2/agent-docs/scripts/mcp/run_npx_mcp.sh",
+      "args": [
+        "@modelcontextprotocol/server-filesystem",
+        "${HOME}/Projects/github.com/sasuw/camilla"
+      ],
+      "env": {},
+      "tools": [
+        "*"
+      ]
+    },
+    "git": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--with",
+        "mcp<2",
+        "mcp-server-git",
+        "--repository",
+        "${HOME}/Projects/github.com/sasuw/camilla"
+      ],
+      "env": {},
+      "tools": [
+        "*"
+      ]
+    },
+    "gitea": {
+      "type": "stdio",
+      "command": "zsh",
+      "args": [
+        "${HOME}/Projects/gitea.sasu.org/infra2/agent-docs/scripts/mcp/run_gitea_mcp.sh"
+      ],
+      "env": {
+        "GITEA_AGENT": "claude",
+        "GITEA_HOST": "https://gitea.sasu.org"
+      },
+      "tools": [
+        "*"
+      ]
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "gitea": {
+      "type": "stdio",
+      "command": "zsh",
+      "args": [
+        "${HOME}/Projects/gitea.sasu.org/infra2/agent-docs/scripts/mcp/run_gitea_mcp.sh"
+      ],
+      "env": {
+        "GITEA_AGENT": "copilot",
+        "GITEA_HOST": "https://gitea.sasu.org"
+      },
+      "tools": [
+        "*"
+      ]
+    }
+  }
+}
