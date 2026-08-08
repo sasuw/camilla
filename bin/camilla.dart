@@ -14,7 +14,7 @@ var numberOfHtmlFiles = 0;
 
 /// Main entry point of the application.
 /// Processes command line arguments and initiates sitemap generation.
-/// 
+///
 /// Args:
 ///   args: Command line arguments passed to the application
 void main(List<String> args) {
@@ -98,7 +98,7 @@ void addUrl() {
 }
 
 /// Adds a location (loc) element to the sitemap XML structure.
-/// 
+///
 /// Args:
 ///   pageName: The relative path of the HTML page
 void addLoc(pageName) {
@@ -109,7 +109,7 @@ void addLoc(pageName) {
 
 /// Adds a last modified date (lastmod) element to the sitemap XML structure.
 /// Formats the date according to sitemap specifications (YYYY-MM-DD).
-/// 
+///
 /// Args:
 ///   lastModDateTime: DateTime object representing the last modification date
 void addLastmod(lastModDateTime) {
@@ -123,7 +123,7 @@ void addLastmod(lastModDateTime) {
 
 /// Adds an alternate language link (xhtml:link) element to the sitemap XML structure.
 /// Used for multi-language support to indicate alternative language versions of a page.
-/// 
+///
 /// Args:
 ///   hreflang: Language code for the alternate version
 ///   pathName: Path to the alternate language version of the page
@@ -136,7 +136,7 @@ void addXhtmlLink(hreflang, pathName) {
 }
 
 /// Collects all HTML files in the current directory and its subdirectories.
-/// 
+///
 /// Returns:
 ///   `List<HtmlFile>`: A list of HtmlFile objects representing all HTML files found
 List<HtmlFile> collectAllPages() {
@@ -145,7 +145,7 @@ List<HtmlFile> collectAllPages() {
 }
 
 /// Returns the current version of the application.
-/// 
+///
 /// Returns:
 ///   String: The version number of the application
 String getAppVersion() {
