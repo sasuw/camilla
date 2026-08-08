@@ -46,7 +46,7 @@ findings separately.
   `--version`/`-v`.
 - Keep filesystem behaviour explicit: only lowercase `.html` and `.htm` files
   are included, and multilingual mode treats every top-level directory as a
-  language directory.
+  language directory. Sitemap URL paths always use `/`, even on Windows.
 
 ## Agent guidance
 

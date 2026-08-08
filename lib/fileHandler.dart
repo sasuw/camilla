@@ -59,17 +59,22 @@ class FileHandler {
     return output;
   }
 
-  /// Converts an absolute file path to a path relative to the current working directory.
+  /// Converts an absolute file path to a sitemap path relative to the current working directory.
   ///
   /// Args:
   ///   filePath: The absolute file path to convert
   ///
   /// Returns:
-  ///   String: The relative path from the current working directory to the file
+  ///   String: The relative URL path from the current working directory to the file
   static String getRelativeFilePath(filePath) {
-    var currentDirPath = Directory.current.path;
-    return filePath
-        .toString()
-        .replaceFirst(currentDirPath + Platform.pathSeparator, '');
+    final relativePath =
+        path.relative(filePath.toString(), from: Directory.current.path);
+    return normalizePathForSitemap(relativePath, path.context);
+  }
+
+  /// Converts a platform-specific relative path to a sitemap URL path.
+  static String normalizePathForSitemap(
+      String relativePath, path.Context pathContext) {
+    return path.posix.joinAll(pathContext.split(relativePath));
   }
 }

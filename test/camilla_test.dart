@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:camilla/fileHandler.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() {
@@ -27,5 +28,12 @@ void main() {
     expect(pageNames, hasLength(2));
     expect(pageNames, contains(endsWith('included.html')));
     expect(pageNames, contains(endsWith('nested/included.htm')));
+  });
+
+  test('normalizes Windows paths for sitemap URLs', () {
+    expect(
+      FileHandler.normalizePathForSitemap(r'nested\about.html', path.windows),
+      'nested/about.html',
+    );
   });
 }
