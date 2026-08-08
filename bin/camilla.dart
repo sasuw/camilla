@@ -149,5 +149,8 @@ List<HtmlFile> collectAllPages() {
 /// Returns:
 ///   String: The version number of the application
 String getAppVersion() {
-  return '1.0.1';
+  return const String.fromEnvironment(
+    'CAMILLA_VERSION',
+    defaultValue: '1.0.1',
+  );
 }

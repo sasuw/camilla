@@ -1,0 +1,151 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]*'
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    name: Verify tagged source
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.12.2
+
+      - name: Validate release tag
+        env:
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]] || {
+            echo "Tag must be a semantic version prefixed with v: $TAG" >&2
+            exit 1
+          }
+
+      - name: Verify Dart code
+        run: |
+          dart pub get
+          dart format --set-exit-if-changed bin lib test
+          dart analyze
+          dart test
+
+  build:
+    name: Build ${{ matrix.platform }} archive
+    needs: verify
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux
+            runner: ubuntu-latest
+            archive: tar.gz
+          - platform: macos
+            # dart compile exe emits the host architecture; revisit before this Intel runner retires.
+            runner: macos-15-intel
+            archive: tar.gz
+          - platform: windows
+            runner: windows-latest
+            archive: zip
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.12.2
+
+      - name: Fetch dependencies
+        run: dart pub get
+
+      - name: Build archive on Unix
+        if: runner.os != 'Windows'
+        env:
+          VERSION: ${{ github.ref_name }}
+          PLATFORM: ${{ matrix.platform }}
+        shell: bash
+        run: |
+          version="${VERSION#v}"
+          mkdir dist
+          dart compile exe -DCAMILLA_VERSION="$version" -o dist/camilla bin/camilla.dart
+          tar -C dist -czf "camilla-$version-$PLATFORM.tar.gz" camilla
+
+      - name: Build archive on Windows
+        if: runner.os == 'Windows'
+        env:
+          VERSION: ${{ github.ref_name }}
+        shell: pwsh
+        run: |
+          $version = $env:VERSION.Substring(1)
+          New-Item -ItemType Directory -Path dist | Out-Null
+          dart compile exe "-DCAMILLA_VERSION=$version" -o dist/camilla.exe bin/camilla.dart
+          Compress-Archive -Path dist/camilla.exe -DestinationPath "camilla-$version-windows.zip"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: camilla-${{ matrix.platform }}
+          path: camilla-*.${{ matrix.archive }}
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Extract release notes
+        env:
+          VERSION: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          version="${VERSION#v}"
+          awk -v version="$version" '
+            found && /^## / { exit }
+            $0 ~ "^## " version "([,[:space:]]|$)" {
+              found = 1
+            }
+            found {
+              if ($0 == "") {
+                blank_lines++
+                next
+              }
+              while (blank_lines > 0) {
+                print ""
+                blank_lines--
+              }
+              print
+            }
+            END {
+              exit !found
+            }
+          ' CHANGELOG.md > release-notes.md
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          version="${TAG#v}"
+          mapfile -t assets < <(find release-assets -type f \( -name '*.tar.gz' -o -name '*.zip' \) | sort)
+          ((${#assets[@]} == 3)) || {
+            echo 'Expected exactly three release assets.' >&2
+            exit 1
+          }
+          gh release create "$TAG" "${assets[@]}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$version" \
+            --notes-file release-notes.md \
+            --verify-tag

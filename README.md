@@ -93,6 +93,24 @@ dart compile exe bin/camilla.dart -o bin/camilla
 For manual testing, `bin/scripts/create_test_site.sh` creates a sample static
 site in `camilla_test/` below the current directory.
 
+## Release
+
+Add release notes for the new version to `CHANGELOG.md`, commit all intended
+changes, then run the release script from a clean `master` branch:
+
+```sh
+bin/scripts/release.sh 1.0.2
+```
+
+It checks the Dart code, updates the package and executable versions, commits
+and tags the release as `v1.0.2`, and pushes it to GitHub. GitHub Actions then
+builds native x64 archives for Linux, macOS, and Windows and publishes them on
+the GitHub release. Use `--dry-run` to validate the release metadata and Dart
+code without changing Git or GitHub.
+
+The macOS executable is not code-signed. Users may need to approve it in
+Gatekeeper before first use.
+
 ## Contribute
 
 Open an issue before starting a substantial change so it can be aligned with
