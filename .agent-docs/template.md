@@ -12,7 +12,7 @@ executable.
 ```text
 bin/camilla.dart              # CLI entry point and sitemap generation
 bin/scripts/create_test_site.sh # Manual-test fixture generator
-lib/fileHandler.dart           # Filesystem traversal and relative paths
+lib/file_handler.dart          # Filesystem traversal and relative paths
 test/camilla_test.dart         # Dart test suite
 deploy/deployLocal.sh          # Local build and install helper
 ```
@@ -32,18 +32,16 @@ Run from source with `dart run bin/camilla.dart -b https://example.com`.
 Compile a standalone executable with
 `dart compile exe bin/camilla.dart -o bin/camilla`.
 
-`dart analyze` currently reports pre-existing findings: its configuration still
-references the removed `pedantic` package, and the CLI and test contain two
-warnings. Do not treat those as introduced by unrelated changes; report any new
-findings separately.
+`dart analyze` is expected to complete without diagnostics. Investigate and
+report any new findings before merging unrelated changes.
 
 ## Code conventions
 
 - The package declares Dart SDK `>=2.12.0`; preserve null-safe Dart code.
 - Use `dart format` for changed Dart files.
-- Preserve established names such as `fileHandler.dart` and existing CLI option
-  spellings: `--baseUrl`/`-b`, `--baseDirContainsLanguageDirs`/`-l`, and
-  `--version`/`-v`.
+- Use snake_case Dart file names, such as `file_handler.dart`, and preserve
+  existing CLI option spellings: `--baseUrl`/`-b`,
+  `--baseDirContainsLanguageDirs`/`-l`, and `--version`/`-v`.
 - Keep filesystem behaviour explicit: only lowercase `.html` and `.htm` files
   are included, and multilingual mode treats every top-level directory as a
   language directory. Sitemap URL paths always use `/`, even on Windows.

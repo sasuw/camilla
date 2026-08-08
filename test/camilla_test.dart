@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:camilla/fileHandler.dart';
+import 'package:camilla/file_handler.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
