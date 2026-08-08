@@ -18,3 +18,5 @@ bin/camilla
 bin/*.tar.gz
 bin/*.exe
 bin/scripts/camilla_test
+
+camilla_test
