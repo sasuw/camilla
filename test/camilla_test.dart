@@ -37,7 +37,9 @@ void main() {
     );
   });
 
-  test('reports error when --baseUrl is missing without throwing unhandled exception', () async {
+  test(
+      'reports error when --baseUrl is missing without throwing unhandled exception',
+      () async {
     final result = await Process.run(
       Platform.executable,
       ['bin/camilla.dart', '-l'],
