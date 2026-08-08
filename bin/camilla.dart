@@ -151,6 +151,6 @@ List<HtmlFile> collectAllPages() {
 String getAppVersion() {
   return const String.fromEnvironment(
     'CAMILLA_VERSION',
-    defaultValue: '1.0.1',
+    defaultValue: '1.0.2',
   );
 }

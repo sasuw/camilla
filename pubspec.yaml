@@ -1,6 +1,6 @@
 name: camilla
 description: sitemap.xml generator for a static website
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/sasuw/camilla
 
 environment:
