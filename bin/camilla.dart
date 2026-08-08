@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:camilla/fileHandler.dart';
+import 'package:camilla/file_handler.dart';
 import 'package:xml/xml.dart';
 import 'package:intl/intl.dart';
 
 final builder = XmlBuilder();
-var baseUrl = 'https://example.com';
+String? baseUrl;
 
 var rootDirContainsLangDirs = false;
 var rootDirs = <String>[];
@@ -14,7 +14,7 @@ var numberOfHtmlFiles = 0;
 
 /// Main entry point of the application.
 /// Processes command line arguments and initiates sitemap generation.
-/// 
+///
 /// Args:
 ///   args: Command line arguments passed to the application
 void main(List<String> args) {
@@ -35,7 +35,7 @@ void main(List<String> args) {
   var argResults = parser.parse(args);
   if (argResults['version']) {
     var version = getAppVersion();
-    stdout.writeln('camilla ' + version);
+    stdout.writeln('camilla $version');
     exit(0);
   }
 
@@ -44,11 +44,11 @@ void main(List<String> args) {
     rootDirs = FileHandler.getRootDirs(Directory.current);
   }
 
-  baseUrl = argResults['baseUrl'];
-  if (baseUrl == null) {
+  if (argResults['baseUrl'] == null) {
     stdout.writeln('Option --baseUrl is mandatory');
     exit(1);
   }
+  baseUrl = argResults['baseUrl'];
 
   builder.processing('xml', 'version="1.0"');
   builder.element('urlset', nest: () {
@@ -65,11 +65,11 @@ void main(List<String> args) {
 
   var stopwatchElapsed = stopwatch.elapsedMilliseconds;
   print('camilla finished in ${(stopwatchElapsed / 1000).toString()} s.');
-  var resultStr = 'sitemap.xml with ' + numberOfHtmlFiles.toString() + ' pages';
+  var resultStr = 'sitemap.xml with $numberOfHtmlFiles pages';
   if (rootDirContainsLangDirs) {
-    resultStr = resultStr + ' in ' + rootDirs.length.toString() + ' languages';
+    resultStr = '$resultStr in ${rootDirs.length} languages';
   }
-  resultStr = resultStr + ' created';
+  resultStr = '$resultStr created';
   print(resultStr);
 }
 
@@ -88,7 +88,7 @@ void addUrl() {
           if (htmlFile.fileName.contains('/')) {
             var htmlFileNameWithoutFirstDir =
                 htmlFile.fileName.substring(htmlFile.fileName.indexOf('/') + 1);
-            var htmlFileName = rootDir + '/' + htmlFileNameWithoutFirstDir;
+            var htmlFileName = '$rootDir/$htmlFileNameWithoutFirstDir';
             addXhtmlLink(rootDir, htmlFileName);
           }
         }
@@ -98,18 +98,18 @@ void addUrl() {
 }
 
 /// Adds a location (loc) element to the sitemap XML structure.
-/// 
+///
 /// Args:
 ///   pageName: The relative path of the HTML page
 void addLoc(pageName) {
   builder.element('loc', nest: () {
-    builder.text(baseUrl + '/' + pageName);
+    builder.text('${baseUrl!}/$pageName');
   });
 }
 
 /// Adds a last modified date (lastmod) element to the sitemap XML structure.
 /// Formats the date according to sitemap specifications (YYYY-MM-DD).
-/// 
+///
 /// Args:
 ///   lastModDateTime: DateTime object representing the last modification date
 void addLastmod(lastModDateTime) {
@@ -123,29 +123,29 @@ void addLastmod(lastModDateTime) {
 
 /// Adds an alternate language link (xhtml:link) element to the sitemap XML structure.
 /// Used for multi-language support to indicate alternative language versions of a page.
-/// 
+///
 /// Args:
 ///   hreflang: Language code for the alternate version
 ///   pathName: Path to the alternate language version of the page
 void addXhtmlLink(hreflang, pathName) {
-  builder.element('xhtml:link ', nest: () {
+  builder.element('xhtml:link', nest: () {
     builder.attribute('rel', 'alternate');
     builder.attribute('hreflang', hreflang);
-    builder.attribute('href', baseUrl + '/' + pathName);
+    builder.attribute('href', '${baseUrl!}/$pathName');
   });
 }
 
 /// Collects all HTML files in the current directory and its subdirectories.
-/// 
+///
 /// Returns:
-///   List<HtmlFile>: A list of HtmlFile objects representing all HTML files found
+///   `List<HtmlFile>`: A list of HtmlFile objects representing all HTML files found
 List<HtmlFile> collectAllPages() {
   var allHtmlFiles = FileHandler.getAllHtmlFiles(Directory.current);
   return allHtmlFiles;
 }
 
 /// Returns the current version of the application.
-/// 
+///
 /// Returns:
 ///   String: The version number of the application
 String getAppVersion() {

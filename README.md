@@ -1,148 +1,103 @@
-<!-- ABOUT THE PROJECT -->
-# About camilla
+# camilla
 
-camilla is a standalone program for creating a [sitemap.xml](https://www.sitemaps.org/) file for static, internationalized websites. It runs as a single executable program on your Linux, Mac or Windows.
+camilla creates a `sitemap.xml` file for a static HTML website. It can be
+compiled into a standalone executable for Linux, macOS, or Windows.
 
-## Why?
+## Install
 
-There are many sitemap generators, but most of them are online or require specific dependencies (node, npm, Python). To fulfil my usage requirements I decided to create my own.
+Download an archive for the latest release from the
+[releases page](https://github.com/sasuw/camilla/releases). Extract it and run
+the `camilla` executable from a terminal. To make it available system-wide,
+place it in a directory on your `PATH`, such as `/usr/local/bin` on Linux or
+macOS.
 
-# Getting started as user
+## Create a sitemap
 
-## Downloads
+Run camilla from the root directory of the static site. The command scans that
+directory recursively for files whose names end in lowercase `.html` or `.htm` and
+overwrites `sitemap.xml` in the current directory.
 
-You can download the latest release from here: [https://github.com/sasuw/camilla/releases](https://github.com/sasuw/camilla/releases)
+`--baseUrl` (or `-b`) is required because sitemap locations must be absolute:
 
-## Installing
+```sh
+camilla --baseUrl https://example.com
+```
 
-Unpack the tar.gz or zip file and execute camilla from your terminal or command line window. For a more permanent installation, copy camilla e.g. to /usr/local/bin (Linux/MacOS) or to C:\Windows\system32 (Windows).
+Do not include a trailing slash in the base URL. camilla adds one before each
+page path. Sitemap URLs always use `/` as their path separator, including when
+camilla runs on Windows.
 
-## Usage and functionality
+The output contains one `url` entry per HTML file, with its relative path and
+the file's last-modified date:
 
-Run camilla from the root directory of your static website. Camilla traverses through all directories, looking for files with type .html  and creates a sitemap.xml file in the root directory of your website. You have to specify at least the 
+```xml
+<?xml version="1.0"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://example.com/about.html</loc>
+    <lastmod>2026-08-08</lastmod>
+  </url>
+</urlset>
+```
 
-    --baseUrl
+## Create a multilingual sitemap
 
-option (or -b for short), e.g.
+Use `--baseDirContainsLanguageDirs` (or `-l`) when every top-level directory in
+the site is a language directory and they share the same page paths:
 
-    camilla -b 'https://example.com'
+```text
+site/
+├── de/
+│   └── index.html
+├── en/
+│   └── index.html
+└── fi/
+    └── index.html
+```
 
-because all sitemap URLs have to be absolute. If you have an internationalized website, where every directory under the base url is a language directory, containing an identical file structure, you can run camilla with the
+```sh
+camilla -b https://example.com -l
+```
 
-    -- baseDirContainsLanguageDirs
+camilla treats every top-level directory as a language code. Keep assets and
+other non-language directories outside this site root. It does not check that a
+corresponding page exists in each language directory, so use this option only
+when their page structures are identical. It adds `xhtml:link` alternate
+references for language-specific pages; pages directly in the site root have no
+alternates. See [Google's guidance for localized pages](https://support.google.com/webmasters/answer/189077?hl=en).
 
-option (or -l for short). This creates alternate language references in the sitemap file (see [Tell Google about localized versions of your page](https://support.google.com/webmasters/answer/189077?hl=en)).
+## Develop
 
-### Example of sitemap.xml produced by camilla
+camilla is a Dart package. Install a supported Dart SDK, then fetch dependencies
+and format, analyze, and test from the repository root:
 
-    <?xml version="1.0"?>
-        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-            <url>
-                <loc>https://example.com/de/index.html</loc>
-                <lastmod>2020-09-13</lastmod>
-            </url>
-            <url>
-                <loc>https://example.com/index.html</loc>
-                <lastmod>2020-09-13</lastmod>
-            </url>
-            <url>
-                <loc>https://example.com/en/index.html</loc>
-                <lastmod>2020-09-13</lastmod>
-            </url>
-            <url>
-                <loc>https://example.com/fi/index.html</loc>
-                <lastmod>2020-09-13</lastmod>
-            </url>
-        </urlset>
+```sh
+dart pub get
+dart format bin lib test
+dart analyze
+dart test
+```
 
-### Example of sitemap.xml produced by camilla when running with --baseDirContainsLanguageDirs option
+Run the program from source with Dart's package runner:
 
-    <?xml version="1.0"?>
-    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-      <url>
-        <loc>https://example.com/de/index.html</loc>
-        <lastmod>2020-09-13</lastmod>
-        <xhtml:link  rel="alternate" hreflang="de" href="https://example.com/de/index.html"/>
-        <xhtml:link  rel="alternate" hreflang="en" href="https://example.com/en/index.html"/>
-        <xhtml:link  rel="alternate" hreflang="fi" href="https://example.com/fi/index.html"/>
-      </url>
-      <url>
-        <loc>https://example.com/index.html</loc>
-        <lastmod>2020-09-13</lastmod>
-      </url>
-      <url>
-        <loc>https://example.com/en/index.html</loc>
-        <lastmod>2020-09-13</lastmod>
-        <xhtml:link  rel="alternate" hreflang="de" href="https://example.com/de/index.html"/>
-        <xhtml:link  rel="alternate" hreflang="en" href="https://example.com/en/index.html"/>
-        <xhtml:link  rel="alternate" hreflang="fi" href="https://example.com/fi/index.html"/>
-      </url>
-      <url>
-        <loc>https://example.com/fi/index.html</loc>
-        <lastmod>2020-09-13</lastmod>
-        <xhtml:link  rel="alternate" hreflang="de" href="https://example.com/de/index.html"/>
-        <xhtml:link  rel="alternate" hreflang="en" href="https://example.com/en/index.html"/>
-        <xhtml:link  rel="alternate" hreflang="fi" href="https://example.com/fi/index.html"/>
-      </url>
-    </urlset>
+```sh
+dart run bin/camilla.dart -b https://example.com
+```
 
-### Trying it out
+Compile a standalone executable with:
 
-To try `camilla` out you can create a test site structure by executing the Bash script `bin/scripts/create_test_site.sh` and executing `camilla` in that directory.
+```sh
+dart compile exe bin/camilla.dart -o bin/camilla
+```
 
-# Getting started as developer
+For manual testing, `bin/scripts/create_test_site.sh` creates a sample static
+site in `camilla_test/` below the current directory.
 
-## Prerequisites
+## Contribute
 
-Dart is installed. See [https://dart.dev/get-dart](https://dart.dev/get-dart)
+Open an issue before starting a substantial change so it can be aligned with
+the project goals. Contributions are welcome as issues, testing, or code.
 
-## Project structure
-
-Standard dart project structure created with [pub](https://dart.dev/tools/pub/cmd), see [https://dart.dev/tools/pub/package-layout](https://dart.dev/tools/pub/package-layout)
-
-The main executable, camilla.dart is located in the bin directory. The internal libraries used by camilla are in the lib directory.
-
-The tests are in the test directory and the test data is in the test/data directory.
-
-## Create executable
-
-    dart pub get
-    dart compile exe bin/camilla.dart -o bin/camilla
-
-## Running the code
-
-When you are in the project root directory, you can execute
-
-    dart bin/camilla.dart
-
-to run the program. For debugging, you can use e.g. [Visual Studio Code](https://code.visualstudio.com/).
-
-# Miscellaneous
-
-<!-- CONTRIBUTING -->
-## Contributing
-
-You can contribute to this project in many ways:
-
-  * submitting an issue (bug or enhancement proposal) 
-  * testing
-  * contributing code
-
-If you want to contribute code, please open an issue or contact me beforehand to ensure that your work in line with the project goals.
-
-When you decide to commit some code:
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## Built With
-
-* [dart-xml](https://github.com/renggli/dart-xml)
-
-<!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+camilla is distributed under the MIT License. See [LICENSE](LICENSE).
