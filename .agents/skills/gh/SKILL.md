@@ -41,7 +41,7 @@ List commands cap results.
 
 ## Repo targeting
 
-`gh` infers the repo from the cwd's git remotes. 
+`gh` infers the repo from the cwd's git remotes.
 
 Pass `--repo OWNER/REPO` (`-R`) to override the resolved CWD repo.
 

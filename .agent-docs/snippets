@@ -1,0 +1,6 @@
+# Snippets selected for agent-docs deployment (one per line).
+# Regenerate with: deploy-agent-docs.sh <dir> --snippet a,b,c
+# Or choose interactively with: deploy-agent-docs.sh <dir> --interactive
+# mode: auto-detect
+#   explicit    = use the list below verbatim; skip language/marker auto-detection
+#   auto-detect = merge auto-detected language/marker snippets in at render time

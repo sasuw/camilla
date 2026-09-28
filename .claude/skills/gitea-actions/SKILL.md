@@ -15,6 +15,7 @@ to rediscover them by trial and error.
 ## When to Use
 
 - Inspect workflow files, runs, or jobs for a repository
+- Confirm whether a run actually published a build artifact, or download one
 - Disable a workflow without deleting it (dead/inherited CI, forks)
 - Diagnose a run or job stuck in `queued`/`waiting`
 - Cancel a stuck run, individually or in bulk
@@ -134,7 +135,32 @@ runner advertises — a runner registered under a custom label (e.g.
 vice versa. See `references/act-runner-deployment.md` for the deployed
 runner topology on this instance and how to register a new one.
 
-### 5) Verify instead of guessing at API/CLI behavior
+### 5) Confirm a workflow published an artifact
+
+The v1 artifact-listing endpoints return `"total_count": 0` for anything
+uploaded by `upload-artifact@v3`, which is the only protocol Gitea
+implements. An empty listing is not a publication failure — do not report
+one on that basis.
+
+```bash
+# Misleading: returns total_count 0 even for a confirmed v3 upload
+curl -s -H "Authorization: token $TOKEN" \
+  "https://gitea.sasu.org/api/v1/repos/$OWNER/$REPO/actions/runs/$RUN/artifacts"
+
+# Evidence the upload happened: the job log's upload step
+# "Artifact <name> has been successfully uploaded!"
+
+# Download it — WEB route, by artifact name, no /api/v1 prefix
+curl -sS -o artifact.zip -H "Authorization: token $TOKEN" \
+  "https://gitea.sasu.org/$OWNER/$REPO/actions/runs/$RUN/artifacts/$NAME"
+```
+
+If you suspect a listing is wrong, check a run you know published as a
+control; if that one also lists zero, the listing is the problem. See
+`references/actions-api-gotchas.md` for the hardcoded `FinalizedArtifactsV4`
+filter that causes this.
+
+### 6) Verify instead of guessing at API/CLI behavior
 
 When Gitea API or CLI behavior is ambiguous, undocumented, or a plausible
 route/flag 404s, check version-matched source rather than guessing:
@@ -157,6 +183,10 @@ verify the tag before trusting one. `tea` CLI source is at
 
 ## Guardrails
 
+- Never read an empty artifact listing as proof a run failed to publish.
+  The v1 endpoints filter out every `upload-artifact@v3` artifact, and v3 is
+  what Gitea supports. Check the job log's upload line, or download by name
+  via the web route, before reporting a packaging or publication failure.
 - Never guess an API route from GitHub Actions' equivalent REST API without
   checking Gitea's own source — GitHub's actions API and Gitea's diverge
   (e.g. no `/cancel`, different runner-scope endpoints).
@@ -180,8 +210,9 @@ verify the tag before trusting one. `tea` CLI source is at
 ## References
 
 - `references/actions-api-gotchas.md` — run/job status enum, the run
-  vs. job status-mismatch trap, the real cancel/delete mechanism, and
-  `tea` CLI's actual command coverage.
+  vs. job status-mismatch trap, the real cancel/delete mechanism,
+  `tea` CLI's actual command coverage, and why artifact listings come back
+  empty for v3 uploads (plus the web route that does return them).
 - `references/act-runner-deployment.md` — registering, deploying, and
   administering `act_runner`: registration-token flow, repo/org/user/admin
   scope, Docker vs. host execution mode, and this instance's deployed

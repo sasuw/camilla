@@ -3,16 +3,17 @@ command = "dart"
 args = ["mcp-server","--force-roots-fallback"]
 
 [mcp_servers.filesystem]
-command = "/home/sasu/Projects/gitea.sasu.org/infra2/agent-docs/scripts/mcp/run_npx_mcp.sh"
-args = ["@modelcontextprotocol/server-filesystem","/home/sasu/Projects/github.com/sasuw/camilla"]
+command = "sh"
+args = ["-c","exec \"$HOME\"'/Projects/gitea.sasu.org/infra2/agent-docs/scripts/mcp/run_npx_mcp.sh' '@modelcontextprotocol/server-filesystem' \"$HOME\"'/Projects/github.com/sasuw/camilla'"]
 
 [mcp_servers.git]
-command = "uvx"
-args = ["--with","mcp<2","mcp-server-git","--repository","/home/sasu/Projects/github.com/sasuw/camilla"]
+command = "sh"
+args = ["-c","exec 'uvx' '--with' 'mcp<2' 'mcp-server-git' '--repository' \"$HOME\"'/Projects/github.com/sasuw/camilla'"]
 
 [mcp_servers.gitea]
-command = "zsh"
-args = ["/home/sasu/Projects/gitea.sasu.org/infra2/agent-docs/scripts/mcp/run_gitea_mcp.sh"]
+command = "sh"
+args = ["-c","exec 'zsh' \"$HOME\"'/Projects/gitea.sasu.org/infra2/agent-docs/scripts/mcp/run_gitea_mcp.sh'"]
+env_vars = ["GITEA_TOKEN_CODEX"]
 env.GITEA_AGENT = "codex"
 env.GITEA_HOST = "https://gitea.sasu.org"
 

@@ -13,7 +13,7 @@ REST API has a parallel route family at each scope
 (`routers/api/v1/{repo,org,user,admin}/...`), all backed by the same
 `shared.GetRegistrationToken`/runner-list/get/delete/update handlers:
 
-```
+```text
 POST   /repos/{owner}/{repo}/actions/runners/registration-token
 GET    /repos/{owner}/{repo}/actions/runners
 GET    /repos/{owner}/{repo}/actions/runners/{runner_id}
@@ -34,10 +34,10 @@ DELETE /admin/actions/runners/{runner_id}
 ```
 
 **Job-selection model is owner_id-scoped, not repo-content-scoped.** An
-org-level or user-level runner has *every* Actions-enabled repo under that
+org-level or user-level runner has _every_ Actions-enabled repo under that
 owner evaluated against it for queued jobs — not just the repos it's
 intended to serve. A registered custom label (see below) prevents the
-runner from *executing* jobs outside its intended scope, but does not
+runner from _executing_ jobs outside its intended scope, but does not
 reduce what gets evaluated. Registering at the narrower scope (one runner
 per repo) is the only mechanism that closes this fully; treat the
 broader-scope tradeoff as a deliberate choice to weigh, not a default.
@@ -52,7 +52,7 @@ registered owner scope, regardless of label overlap.
 Register runners under a custom label (e.g. `gitea-actions-group-b`) that
 workflows opt into explicitly via `runs-on:`, rather than the bare
 `ubuntu-latest`/`macos-latest` GitHub-compatible labels — unless you
-specifically intend the runner to pick up *every* workflow at its owner
+specifically intend the runner to pick up _every_ workflow at its owner
 scope that requests that stock label. Registering under a custom label
 also means workflows still requesting `ubuntu-latest` will queue forever
 until their `runs-on:` is updated to match — this is expected, not a bug,
@@ -112,7 +112,7 @@ This is the most common act_runner-related failure mode. Check, in order:
 
 Resetting/regenerating a registration token does **not** un-register or
 disconnect a runner already running under the old token — the old token
-simply becomes invalid for any *future* registration attempt. If you need
+simply becomes invalid for any _future_ registration attempt. If you need
 to force an existing runner to re-register (e.g. after a suspected token
 leak), you must also restart that runner process/container after rotating
 the token, not just rotate the token alone.

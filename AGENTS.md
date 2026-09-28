@@ -2,75 +2,55 @@
 
 ## Project overview
 
-<!-- One paragraph: what this project does and its primary tech stack. -->
+camilla is a Dart command-line program that recursively scans a static website
+for lowercase `.html` and `.htm` files and writes a `sitemap.xml`. It supports a
+top-level-directory multilingual layout and can be compiled as a standalone
+executable.
 
 ## Repository structure
 
-<!-- Key directories and what they contain. -->
-
-```
-src/        # application source
-tests/      # test suite
-docs/       # documentation
+```text
+bin/camilla.dart              # CLI entry point and sitemap generation
+bin/scripts/create_test_site.sh # Manual-test fixture generator
+lib/file_handler.dart          # Filesystem traversal and relative paths
+test/camilla_test.dart         # Dart test suite
+deploy/deployLocal.sh          # Local build and install helper
 ```
 
 ## Development workflow
 
-<!-- How to build, run, and test the project. -->
+Use the Dart SDK and run commands from the repository root:
 
 ```sh
-# Install dependencies
-# npm install / pip install -r requirements.txt / ...
-
-# Run tests
-# npm test / pytest / ...
+dart pub get
+dart format bin lib test
+dart analyze
+dart test
 ```
+
+Run from source with `dart run bin/camilla.dart -b https://example.com`.
+Compile a standalone executable with
+`dart compile exe bin/camilla.dart -o bin/camilla`.
+
+`dart analyze` is expected to complete without diagnostics. Investigate and
+report any new findings before merging unrelated changes.
 
 ## Code conventions
 
-<!-- Language, formatting, naming rules that matter most. -->
-
-- Language/runtime version: <!-- e.g. Node 22, Python 3.12 -->
-- Formatter: <!-- e.g. prettier, black -->
-- Key rules: <!-- e.g. no default exports, snake_case functions -->
-
-## Project-specific guidance
-
-
-### Shell
-
-- Bash and zsh are equally acceptable.
-- Preserve an existing script's shell language, dialect, and shebang.
-- For new scripts, use the shell language already used by most of the repository unless project requirements give a reason to choose another.
-- Use `set -euo pipefail` for Bash scripts unless the script intentionally handles unset values or non-zero statuses.
-- All shell scripts intended to be run directly should have `-h`/`--help` usage output.
-- Add a `-n`/`--dry-run` option for scripts making permanent changes to the system, other systems, or transmitting data over the network.
-- Use snake_case for shell script file names.
-- Use snake_case for function names in shell scripts.
-- Keep scripts compatible with typical default installations of modern macOS, Linux (especially Debian-based), and FreeBSD.
-- Quote variable expansions unless word splitting is explicitly required.
-- Use `shellcheck` and `bash -n` to validate Bash scripts. `shellcheck` does not support zsh.
-- Use `zsh -n` to check zsh syntax. Use a repository-configured zsh formatter or linter when available.
-- Use `shfmt` only for shell dialects it supports, not for zsh.
-- Do not hardcode home directory paths (e.g. `/Users/<user>`, `/home/<user>`). Prefer `$HOME`; use `~` only where `$HOME` does not work (e.g. `.gitconfig`). Only fall back to a hardcoded home directory path if neither is possible.
-- Do not use `path` or `status` as variable names in zsh scripts.
-- Scripts compute their own `SCRIPT_DIR` / `REPO_ROOT` with a shell-appropriate mechanism, such as `$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)` in Bash or `${0:A:h}` in zsh.
-- Shared logic lives in lib files (e.g., `homebin/ssh-key-scan-lib.sh`) that are `source`d by consumers — not copied
-- Errors go to stderr via a dedicated error function (e.g., `ssh_key_scan_err()`)
-- Dependencies are checked with `require_command` / `ensure_*_commands` at startup
-
-
-### Markdown and Documentation
-
-- Keep headings hierarchical and use descriptive link text.
-- Update nearby documentation when behavior, commands, or configuration paths change.
-- Prefer concise examples that can be copied and run as written.
-- Check rendered tables and lists when making structural documentation changes.
-
+- The package declares Dart SDK `>=2.12.0`; preserve null-safe Dart code.
+- Use `dart format` for changed Dart files.
+- Use snake_case Dart file names, such as `file_handler.dart`, and preserve
+  existing CLI option spellings: `--baseUrl`/`-b`,
+  `--baseDirContainsLanguageDirs`/`-l`, and `--version`/`-v`.
+- Keep filesystem behaviour explicit: only lowercase `.html` and `.htm` files
+  are included, and multilingual mode treats every top-level directory as a
+  language directory. Sitemap URL paths always use `/`, even on Windows.
 
 ## Agent guidance
 
-<!-- What the agent should and should not do autonomously. -->
-
-- Prefer editing existing files over creating new ones.
-- After any non-trivial change: run the repository's configured linter, compile, and run the test suite
+- Edit `.agent-docs/template.md`, not generated instruction files. Deploy the
+  template with `adm docs deploy .` when the instruction files must be updated.
+- Run the relevant Dart formatter, analyzer, and tests after non-trivial
+  changes.
+- Update `README.md` when command-line behaviour, supported layouts, or build
+  commands change.

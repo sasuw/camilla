@@ -11,16 +11,16 @@ stable across major versions without checking.
 `models/actions/status.go` defines one `Status` type shared by
 `ActionRun`, `ActionRunJob`, `ActionTask`, and `ActionTaskStep`:
 
-| Value | Name | `IsDone()` |
-|---:|---|---|
-| 0 | `unknown` | no |
-| 1 | `success` | yes |
-| 2 | `failure` | yes |
-| 3 | `cancelled` | yes |
-| 4 | `skipped` | yes |
-| 5 | `waiting` | no |
-| 6 | `running` | no |
-| 7 | `blocked` | no |
+| Value | Name        | `IsDone()` |
+| ----: | ----------- | ---------- |
+|     0 | `unknown`   | no         |
+|     1 | `success`   | yes        |
+|     2 | `failure`   | yes        |
+|     3 | `cancelled` | yes        |
+|     4 | `skipped`   | yes        |
+|     5 | `waiting`   | no         |
+|     6 | `running`   | no         |
+|     7 | `blocked`   | no         |
 
 `IsDone()` is `true` only for `success`, `failure`, `cancelled`, `skipped`.
 A run/job showing `waiting`, `running`, or `blocked` is **not** done — this
@@ -67,7 +67,7 @@ mechanism exists at all.
 The real, confirmed mechanism (`routers/api/v1/repo/action.go`,
 `DeleteActionRun`):
 
-```
+```text
 DELETE /api/v1/repos/{owner}/{repo}/actions/runs/{run}
 ```
 
@@ -143,3 +143,81 @@ it. The real per-workflow API toggle
 (`PUT .../actions/workflows/{workflow_id}/{disable,enable}`) is generally
 preferable going forward since it needs no file change at all; see the main
 `SKILL.md` for the exact call.
+
+## Artifact listing returns nothing for v3-protocol uploads
+
+Both artifact-listing endpoints report `"total_count": 0` for artifacts
+uploaded by `upload-artifact@v3`, even when the upload succeeded, the
+artifact is `upload-confirmed`, unexpired, and downloadable:
+
+```text
+GET /api/v1/repos/{owner}/{repo}/actions/runs/{run}/artifacts
+GET /api/v1/repos/{owner}/{repo}/actions/artifacts
+```
+
+An empty listing is therefore **not** evidence that a workflow failed to
+publish. Do not report a packaging or publication failure on this basis.
+
+**Why.** Both handlers hardcode `FinalizedArtifactsV4: true`
+(`routers/api/v1/repo/action.go`, `GetArtifactsOfRun` and `GetArtifacts`).
+In `FindArtifactsOptions.ToConds()` (`models/actions/artifact.go`) that flag
+adds two conditions:
+
+```go
+cond = cond.And(builder.Eq{"status": ArtifactStatusUploadConfirmed}.Or(builder.Eq{"status": ArtifactStatusExpired}))
+cond = cond.And(builder.Like{"content_encoding", "%/%"})
+```
+
+The second one is the filter that bites. Per the field comment on
+`ActionArtifact.ContentEncodingOrType`, `content_encoding` holds:
+
+- empty or null — legacy (v3) uncompressed content
+- `gzip` — v3 gzip-compressed content
+- a MIME type such as `application/zip` — v4
+
+Only a MIME type contains `/`, so `LIKE '%/%'` matches v4 uploads only.
+Every v3 artifact is excluded from both listings by construction. This is a
+filter, not a bug in the upload, and no query parameter turns it off.
+
+This matters here because Gitea only implements the v3 artifact protocol:
+`upload-artifact@v4` aborts against Gitea with `GHESNotSupportedError`, so
+repositories on this instance deliberately pin the v3 line — which is
+exactly the case the listing API cannot see.
+
+**Confirming an upload actually happened.** Read the job log for the
+upload step; a successful v3 upload prints:
+
+```text
+Artifact <name> has been successfully uploaded!
+```
+
+**Downloading a v3 artifact.** Use the *web* route, which takes the
+artifact **name** rather than a numeric id, and works for v3 artifacts
+because it filters on status only
+(`ListUploadedArtifactsMetaByRunAttempt`, no `content_encoding` condition):
+
+```text
+GET /{owner}/{repo}/actions/runs/{run}/artifacts/{artifact_name}
+```
+
+Registered at `routers/web/web.go:1560` (`actions.ArtifactsDownloadView`).
+Note the path has no `/api/v1` prefix. Authenticate with the usual
+`Authorization: token <token>` header; it returns `200` with
+`application/zip`:
+
+```sh
+curl -sS -o artifact.zip \
+  -H "Authorization: token $TOKEN" \
+  "https://gitea.sasu.org/{owner}/{repo}/actions/runs/{run}/artifacts/{name}"
+```
+
+Verified on `wortx/website` run 3939: the v1 endpoints returned
+`total_count: 0` while this route returned a 155,934-byte zip containing the
+expected package and its `.sha256` sidecar. The same run's full-gate
+predecessor (run 3938) also listed zero artifacts despite publishing, which
+is a useful control — if a known-good run also lists zero, the listing is
+the problem, not the run.
+
+The numeric-id endpoints (`GET/DELETE .../actions/artifacts/{artifact_id}`,
+`.../{artifact_id}/zip`) are not usable for v3 artifacts either, since the
+only way to discover an id is the listing that omits them.
