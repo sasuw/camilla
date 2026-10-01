@@ -191,7 +191,7 @@ upload step; a successful v3 upload prints:
 Artifact <name> has been successfully uploaded!
 ```
 
-**Downloading a v3 artifact.** Use the *web* route, which takes the
+**Downloading a v3 artifact.** Use the _web_ route, which takes the
 artifact **name** rather than a numeric id, and works for v3 artifacts
 because it filters on status only
 (`ListUploadedArtifactsMetaByRunAttempt`, no `content_encoding` condition):
