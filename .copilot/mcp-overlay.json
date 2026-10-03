@@ -8,7 +8,8 @@
       ],
       "env": {
         "GITEA_AGENT": "copilot",
-        "GITEA_HOST": "https://gitea.sasu.org"
+        "GITEA_PROJECT_DIR": "${HOME}/Projects/github.com/sasuw/camilla",
+        "GITEA_HOST_SOURCE": "project"
       },
       "tools": [
         "*"

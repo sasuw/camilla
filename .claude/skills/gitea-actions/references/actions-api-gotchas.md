@@ -1,7 +1,7 @@
 # Gitea Actions: status semantics, cancellation, and CLI coverage
 
 Confirmed against Gitea 1.27.0 (`gitea.sasu.org`), checked against a
-version-matched source checkout: `/home/sasu/Projects/gitea.com/gitea/gitea-mirror`
+version-matched source checkout: `~/Projects/gitea.com/gitea/gitea-mirror`
 (tag `v1.27.0-dev-153-g...`, tracks upstream `main`). Re-verify against
 current source if the instance is upgraded — do not assume these routes are
 stable across major versions without checking.
@@ -101,7 +101,7 @@ SELECT id, run_id, status FROM action_run_job WHERE status IN (5, 7);
 
 ## `tea` CLI coverage
 
-Source: `/home/sasu/Projects/gitea.com/gitea/tea`, `cmd/actions/`.
+Source: `~/Projects/gitea.com/gitea/tea`, `cmd/actions/`.
 
 As of the checked-out version, `tea actions` has subcommands for:
 

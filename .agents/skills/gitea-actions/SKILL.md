@@ -1,7 +1,7 @@
 ---
 name: gitea-actions
-description: "Inspect, manage, and administer Gitea Actions on gitea.sasu.org — workflow discovery and disabling, run/job status semantics, cancelling stuck runs, tea CLI coverage, and act_runner registration and deployment. Use when working with Gitea Actions workflows, runs, jobs, or act_runner instances, or when asked to deploy/administer a new runner."
-compatibility: "Confirmed against Gitea 1.27.0 (gitea.sasu.org). Route/behavior claims here were checked against a version-matched source checkout (gitea.com/gitea/gitea-mirror, tag v1.27.0-dev-153-g...); re-verify against current source if the instance is upgraded."
+description: "Inspect, manage, and administer Gitea Actions on gitea.sasu.org — workflow discovery and disabling, run/job status semantics, cancelling stuck runs, tea CLI coverage, and act_runner registration and deployment — and wait for a CI run on gitea.sasu.org or forgejo.sasu.org with a probe that fails loudly. Use when working with Gitea Actions workflows, runs, jobs, or act_runner instances, when asked to deploy/administer a new runner, or when waiting for, watching, or polling a Gitea or Forgejo Actions run after a push or PR."
+compatibility: "Confirmed against Gitea 1.27.0 (gitea.sasu.org). Route/behavior claims here were checked against a version-matched source checkout (gitea.com/gitea/gitea-mirror, tag v1.27.0-dev-153-g...); re-verify against current source if the instance is upgraded. Only references/waiting-for-a-run.md covers Forgejo: its runs-list facts were checked against Forgejo 15.0.9 (forgejo.sasu.org) and Gitea 1.27.3 on 2026-10-03. The rest of this skill makes no Forgejo claims."
 ---
 
 # Gitea Actions
@@ -18,6 +18,8 @@ to rediscover them by trial and error.
 - Confirm whether a run actually published a build artifact, or download one
 - Disable a workflow without deleting it (dead/inherited CI, forks)
 - Diagnose a run or job stuck in `queued`/`waiting`
+- Wait for the run a push or PR triggered, on Gitea or Forgejo, and report
+  its result
 - Cancel a stuck run, individually or in bulk
 - Check whether an `act_runner` is registered and online for a repo/org/user
 - Register a new `act_runner`, rotate its token, or deploy one via Ansible
@@ -160,7 +162,28 @@ control; if that one also lists zero, the listing is the problem. See
 `references/actions-api-gotchas.md` for the hardcoded `FinalizedArtifactsV4`
 filter that causes this.
 
-### 6) Verify instead of guessing at API/CLI behavior
+### 6) Wait for a run on Gitea or Forgejo
+
+Check once right after the push, before any loop, and report the state you
+saw. Select the run by full commit SHA, workflow file, and event — never as
+the first entry of the latest runs. Parse a saved response with
+`ci_run_probe`, which exits non-zero on an empty, malformed, ambiguous, or
+unknown response instead of treating it as "still running".
+
+The hosts differ. Forgejo 15 reports the result in `status`; Gitea 1.27
+reports `status: completed` and the result in `conclusion`. Forgejo's API
+takes the run `id`, while its web links use `index_in_repo`. `tea api` exits
+0 on an HTTP error.
+
+```bash
+probe_once; echo "rc=$?"   # 0 success, 1 failure/cancelled/skipped, 2 probe error, 3 pending, 4 none yet
+```
+
+The probe, the host table, the one-check and bounded-wait commands, and the
+incident behind them: `references/waiting-for-a-run.md`. Do not cancel or
+re-run a remote run only because your wait ended.
+
+### 7) Verify instead of guessing at API/CLI behavior
 
 When Gitea API or CLI behavior is ambiguous, undocumented, or a plausible
 route/flag 404s, check version-matched source rather than guessing:
@@ -170,18 +193,21 @@ route/flag 404s, check version-matched source rather than guessing:
 curl -s https://gitea.sasu.org/api/v1/version
 
 # Find/confirm a matching tag in the local checkout, then grep the real source
-cd /home/sasu/Projects/gitea.com/gitea/gitea-mirror
+cd "$HOME/Projects/gitea.com/gitea/gitea-mirror"
 git describe --tags --always
 grep -rn "actions/runs/{run}\|actions/runners" routers/api/v1/api.go
 ```
 
 `gitea.com/gitea/gitea-mirror` tracks upstream `main` and is the
 version-matched checkout for this instance; most other `gitea.com/gitea/*`
-checkouts under `/home/sasu/Projects/gitea.com/gitea/` are stale snapshots —
+checkouts under `~/Projects/gitea.com/gitea/` are stale snapshots —
 verify the tag before trusting one. `tea` CLI source is at
-`/home/sasu/Projects/gitea.com/gitea/tea`.
+`~/Projects/gitea.com/gitea/tea`.
 
 ## Guardrails
+
+- Never say you are watching or waiting for a run before a probe returned
+  its state. A probe that cannot parse its input is an error, not "pending".
 
 - Never read an empty artifact listing as proof a run failed to publish.
   The v1 endpoints filter out every `upload-artifact@v3` artifact, and v3 is
@@ -213,6 +239,9 @@ verify the tag before trusting one. `tea` CLI source is at
   vs. job status-mismatch trap, the real cancel/delete mechanism,
   `tea` CLI's actual command coverage, and why artifact listings come back
   empty for v3 uploads (plus the web route that does return them).
+- `references/waiting-for-a-run.md` — waiting for a run on Gitea or
+  Forgejo: per-host field and identifier table, the copyable `ci_run_probe`
+  with its exit codes, a one-check command, and a bounded background wait.
 - `references/act-runner-deployment.md` — registering, deploying, and
   administering `act_runner`: registration-token flow, repo/org/user/admin
   scope, Docker vs. host execution mode, and this instance's deployed

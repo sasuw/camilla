@@ -145,7 +145,7 @@ Runner-registration and job-scheduling behavior is exactly the kind of
 thing that's easy to get subtly wrong by analogy with GitHub Actions (whose
 self-hosted-runner model differs in scope semantics). When behavior is
 ambiguous, check the version-matched Gitea source
-(`/home/sasu/Projects/gitea.com/gitea/gitea-mirror`, after confirming its
+(`~/Projects/gitea.com/gitea/gitea-mirror`, after confirming its
 tag matches the live instance's `/api/v1/version`) — particularly
 `models/actions/task.go` (`CreateTaskForRunner`, job-selection logic) and
 `routers/api/v1/{repo,org,user,admin}/...` plus `routers/api/v1/shared/runners.go`

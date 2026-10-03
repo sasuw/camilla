@@ -12,33 +12,6 @@
         "*"
       ]
     },
-    "filesystem": {
-      "type": "stdio",
-      "command": "${HOME}/Projects/gitea.sasu.org/infra2/agent-docs/scripts/mcp/run_npx_mcp.sh",
-      "args": [
-        "@modelcontextprotocol/server-filesystem",
-        "${HOME}/Projects/github.com/sasuw/camilla"
-      ],
-      "env": {},
-      "tools": [
-        "*"
-      ]
-    },
-    "git": {
-      "type": "stdio",
-      "command": "uvx",
-      "args": [
-        "--with",
-        "mcp<2",
-        "mcp-server-git",
-        "--repository",
-        "${HOME}/Projects/github.com/sasuw/camilla"
-      ],
-      "env": {},
-      "tools": [
-        "*"
-      ]
-    },
     "gitea": {
       "type": "stdio",
       "command": "zsh",
@@ -47,7 +20,8 @@
       ],
       "env": {
         "GITEA_AGENT": "claude",
-        "GITEA_HOST": "https://gitea.sasu.org"
+        "GITEA_PROJECT_DIR": "${HOME}/Projects/github.com/sasuw/camilla",
+        "GITEA_HOST_SOURCE": "project"
       },
       "tools": [
         "*"

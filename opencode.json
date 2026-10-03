@@ -8,34 +8,16 @@
         "--force-roots-fallback"
       ]
     },
-    "filesystem": {
-      "type": "local",
-      "command": [
-        "{env:HOME}/Projects/gitea.sasu.org/infra2/agent-docs/scripts/mcp/run_npx_mcp.sh",
-        "@modelcontextprotocol/server-filesystem",
-        "{env:HOME}/Projects/github.com/sasuw/camilla"
-      ]
-    },
-    "git": {
-      "type": "local",
-      "command": [
-        "uvx",
-        "--with",
-        "mcp<2",
-        "mcp-server-git",
-        "--repository",
-        "{env:HOME}/Projects/github.com/sasuw/camilla"
-      ]
-    },
     "gitea": {
       "type": "local",
       "command": [
         "zsh",
         "{env:HOME}/Projects/gitea.sasu.org/infra2/agent-docs/scripts/mcp/run_gitea_mcp.sh"
       ],
-      "env": {
+      "environment": {
         "GITEA_AGENT": "opencode",
-        "GITEA_HOST": "https://gitea.sasu.org"
+        "GITEA_PROJECT_DIR": "{env:HOME}/Projects/github.com/sasuw/camilla",
+        "GITEA_HOST_SOURCE": "project"
       }
     }
   }
