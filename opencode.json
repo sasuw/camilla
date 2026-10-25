@@ -1,23 +1,25 @@
 {
   "mcp": {
-    "dart-mcp": {
-      "type": "local",
-      "command": [
-        "dart",
-        "mcp-server",
-        "--force-roots-fallback"
-      ]
-    },
-    "gitea": {
-      "type": "local",
-      "command": [
-        "zsh",
-        "{env:HOME}/Projects/gitea.sasu.org/infra2/agent-docs/scripts/mcp/run_gitea_mcp.sh"
-      ],
-      "environment": {
-        "GITEA_AGENT": "opencode",
-        "GITEA_PROJECT_DIR": "{env:HOME}/Projects/github.com/sasuw/camilla",
-        "GITEA_HOST_SOURCE": "project"
+    "servers": {
+      "dart-mcp": {
+        "type": "local",
+        "command": [
+          "dart",
+          "mcp-server",
+          "--force-roots-fallback"
+        ]
+      },
+      "gitea": {
+        "type": "local",
+        "command": [
+          "zsh",
+          "{env:HOME}/Projects/gitea.sasu.org/infra2/agent-docs/scripts/mcp/run_gitea_mcp.sh"
+        ],
+        "environment": {
+          "GITEA_AGENT": "opencode",
+          "GITEA_PROJECT_DIR": "{env:HOME}/Projects/github.com/sasuw/camilla",
+          "GITEA_HOST_SOURCE": "project"
+        }
       }
     }
   }
