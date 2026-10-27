@@ -1,6 +1,6 @@
 ---
 name: gitea-actions
-description: "Inspect, manage, and administer Gitea Actions on gitea.sasu.org — workflow discovery and disabling, run/job status semantics, cancelling stuck runs, tea CLI coverage, and act_runner registration and deployment — and wait for a CI run on gitea.sasu.org or forgejo.sasu.org with a probe that fails loudly. Use when working with Gitea Actions workflows, runs, jobs, or act_runner instances, when asked to deploy/administer a new runner, or when waiting for, watching, or polling a Gitea or Forgejo Actions run after a push or PR."
+description: "Inspect, manage, and administer Gitea Actions on gitea.sasu.org — workflow discovery and disabling, run/job status semantics, cancelling stuck runs, tea CLI coverage, and act_runner registration, deployment, and pausing/resuming — and wait for a CI run on gitea.sasu.org or forgejo.sasu.org with a probe that fails loudly. Use when working with Gitea Actions workflows, runs, jobs, or act_runner instances, when asked to deploy/administer a new runner, or when waiting for, watching, or polling a Gitea or Forgejo Actions run after a push or PR."
 compatibility: "Confirmed against Gitea 1.27.0 (gitea.sasu.org). Route/behavior claims here were checked against a version-matched source checkout (gitea.com/gitea/gitea-mirror, tag v1.27.0-dev-153-g...); re-verify against current source if the instance is upgraded. Only references/waiting-for-a-run.md covers Forgejo: its runs-list facts were checked against Forgejo 15.0.9 (forgejo.sasu.org) and Gitea 1.27.3 on 2026-10-03. The rest of this skill makes no Forgejo claims."
 ---
 
@@ -22,6 +22,8 @@ to rediscover them by trial and error.
   its result
 - Cancel a stuck run, individually or in bulk
 - Check whether an `act_runner` is registered and online for a repo/org/user
+- Pause (disable) a runner so it takes no new jobs, or resume it, without
+  unregistering it
 - Register a new `act_runner`, rotate its token, or deploy one via Ansible
 - Decide whether behavior is really undocumented/unsupported, or just
   unverified — and how to check version-matched source instead of guessing
@@ -36,9 +38,15 @@ to rediscover them by trial and error.
    see below on terminology). Don't trust an MCP tool's advertised method
    name as proof the underlying server route exists; verify or fall back to
    `tea`/REST. See `references/actions-api-gotchas.md`.
-2. `tea` CLI: `tea actions runs delete <run-id>` (aliased `cancel`/`remove`/`rm`)
-   wraps the same `DELETE .../actions/runs/{run}` endpoint as the REST call
-   below — usable and confirmed present in the current `tea` checkout.
+   **Runners:** the MCP tools have no method to list, get, or pause/resume a
+   runner (`actions_config_*` covers secrets and variables only). Discover
+   the host's tools first; if no runner method appears, fall back.
+2. `tea` CLI, always through `agent_tea.sh --host gitea.sasu.org` (it runs
+   under the agent's own forge login; never run bare `tea`):
+   `agent_tea.sh --host gitea.sasu.org actions runs delete <run-id>` (aliased
+   `cancel`/`remove`/`rm`) wraps the same `DELETE .../actions/runs/{run}`
+   endpoint as the REST call below. Its `api` subcommand reaches any route,
+   including the runner routes (workflow 8).
 3. Gitea REST API via `curl` as a fallback, or when scripting bulk
    operations `tea` doesn't batch for you.
 
@@ -49,8 +57,8 @@ Both still require the run to already be `Status.IsDone()` (see Common
 Workflow 3 below); neither can force-stop a genuinely in-progress run.
 
 Read-only inspection needs no special authorization. Cancelling runs, editing
-workflow enable/disable state, or touching `act_runner` registration/tokens
-follows this project's normal confirm-before-hard-to-reverse-actions rule —
+workflow enable/disable state, pausing or resuming a runner, or touching
+`act_runner` registration/tokens follows this project's normal confirm-before-hard-to-reverse-actions rule —
 none of these are silently reversible in the way a local file edit is.
 
 ## Common Workflows
@@ -101,8 +109,8 @@ is no `POST .../cancel` route. The real mechanism:
 
 ```bash
 # via tea (asks for confirmation unless -y/--confirm):
-tea actions runs delete <run-id> --repo owner/repo -y
-# 'tea actions runs cancel'/'remove'/'rm' are aliases for the same command
+agent_tea.sh --host gitea.sasu.org actions runs delete <run-id> --repo owner/repo -y
+# 'actions runs cancel'/'remove'/'rm' are aliases for the same command
 
 # via REST directly:
 curl -X DELETE -H "Authorization: token ${TOKEN}" \
@@ -134,8 +142,9 @@ curl -s -H "Authorization: token ${TOKEN}" \
 Also check the workflow's `runs-on` label actually matches a label a live
 runner advertises — a runner registered under a custom label (e.g.
 `gitea-actions-group-b`) never picks up jobs requesting `ubuntu-latest`, and
-vice versa. See `references/act-runner-deployment.md` for the deployed
-runner topology on this instance and how to register a new one.
+vice versa. A runner can also be online but paused: check its `disabled`
+field (workflow 8). See `references/act-runner-deployment.md` for the
+deployed runner topology on this instance and how to register a new one.
 
 ### 5) Confirm a workflow published an artifact
 
@@ -204,6 +213,42 @@ checkouts under `~/Projects/gitea.com/gitea/` are stale snapshots —
 verify the tag before trusting one. `tea` CLI source is at
 `~/Projects/gitea.com/gitea/tea`.
 
+### 8) Pause or resume a runner
+
+Set the runner's `disabled` boolean. A paused runner stays registered and
+connected, but Gitea assigns it no new jobs. Pausing does not cancel a job
+the runner already took, does not disable any workflow, and does not stop
+other runners eligible for the same jobs. It does not wait for the runner to
+go idle either.
+
+1. List the runners at the scope and pick the runner ID. The scope is one
+   of `admin` (instance-wide), `orgs/<org>`, `repos/<owner>/<repo>`, or
+   `user` (the token's own account).
+2. Get that runner and record `id`, `name`, `status`, and `disabled`.
+3. Obtain authorization for the change: name the runner, ID, scope, and
+   target state. Read-only steps 1, 2, and 5 need none.
+4. Send `PATCH .../actions/runners/<id>` with `{"disabled":true}` to pause or
+   `{"disabled":false}` to resume.
+5. Get the same runner again and confirm the `id` and the `disabled` value.
+
+```bash
+scope="repos/OWNER/REPO"   # or: admin, orgs/ORG, user — real names, not {placeholders}
+id=42
+agent_tea.sh --host gitea.sasu.org api "$scope/actions/runners" \
+  | jq '.runners[] | {id, name, status, busy, disabled}'
+# after authorization; -F keeps the value a JSON boolean, -i prints the HTTP status
+agent_tea.sh --host gitea.sasu.org api -i -X PATCH -F disabled=true \
+  "$scope/actions/runners/$id"
+agent_tea.sh --host gitea.sasu.org api "$scope/actions/runners/$id" \
+  | jq -e --argjson id "$id" '.id == $id and .disabled == true'
+```
+
+A zero exit is not proof of success: the wrapper fails only on 401 and 403,
+and tea exits 0 on other HTTP errors, so check the status line (200) and the
+read-back. A permission error never authorizes trying another account's
+token. The four routes, response fields, error meanings, and the REST
+fallback: `references/act-runner-deployment.md`.
+
 ## Guardrails
 
 - Never say you are watching or waiting for a run before a probe returned
@@ -221,6 +266,9 @@ verify the tag before trusting one. `tea` CLI source is at
   write that only touches `action_run` and not `action_run_job` looks
   successful but leaves the job-level state (and therefore the scheduler)
   still stuck.
+- Pause or resume only the runner you were authorized to change, through
+  its own scope's route, and confirm the result with a read-back. Do not
+  stop the runner's service or unregister it to pause it.
 - Registering, deploying, or reconfiguring an `act_runner`, and rotating its
   registration token, are hard-to-reverse, shared-infrastructure changes —
   confirm before acting, same as any other production change in this
@@ -244,5 +292,5 @@ verify the tag before trusting one. `tea` CLI source is at
   with its exit codes, a one-check command, and a bounded background wait.
 - `references/act-runner-deployment.md` — registering, deploying, and
   administering `act_runner`: registration-token flow, repo/org/user/admin
-  scope, Docker vs. host execution mode, and this instance's deployed
-  topology.
+  scope, pausing and resuming a runner, the queue diagnosis, Docker vs. host
+  execution mode, and this instance's deployed topology.
